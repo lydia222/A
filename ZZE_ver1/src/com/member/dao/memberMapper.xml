@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.member">
+	
+	<select id="memberTotal" resultType="int">
+		SELECT COUNT(*) FROM OC_MEMBER WHERE ENABLED != 'A'
+	</select>
+	
+	<select id="selectPage" parameterType="int" resultType="MemberDto">
+		<![CDATA[ 
+		SELECT *
+		FROM 
+			(SELECT ROWNUM AS RN, M.*
+			FROM (SELECT * FROM OC_MEMBER WHERE ENABLED!='A' ORDER BY NO DESC) M
+			WHERE ROWNUM <= #{page}*10)
+		WHERE #{page}*10-9 <= RN
+		]]> 
+	</select>
+	
+	<select id="memberTotalBySearch" parameterType="Map" resultType="int">
+		SELECT COUNT(*) FROM OC_MEMBER WHERE ENABLED != 'A' AND UPPER(${search}) LIKE '%'||UPPER(#{keyword})||'%'
+	</select>
+	
+	<select id="selectPageBySearch" parameterType="Map" resultType="MemberDto">
+		<![CDATA[ 
+		SELECT *
+		FROM 
+			(SELECT ROWNUM AS RN, M.*
+			FROM (SELECT * FROM OC_MEMBER WHERE ENABLED!='A' AND UPPER(${search}) LIKE '%'||UPPER(#{keyword})||'%' ORDER BY NO DESC) M
+			WHERE ROWNUM <= #{page}*10)
+		WHERE #{page}*10-9 <= RN
+		]]> 
+	</select>
+	
+	<select id="selectOneById" parameterType="String" resultType="MemberDto">
+		SELECT * FROM OC_MEMBER WHERE UPPER(ID) = UPPER(#{id})
+	</select>
+	
+	<select id="selectOneByEmail" parameterType="String" resultType="MemberDto">
+		SELECT * FROM OC_MEMBER WHERE UPPER(EMAIL) = UPPER(#{email})
+	</select>
+	
+	<select id="login" parameterType="Map" resultType="MemberDto">
+		SELECT * FROM OC_MEMBER WHERE ID=#{id} AND PW=#{pw} AND ENABLED != 'N'
+	</select>
+	
+	<insert id="insert" parameterType="MemberDto">
+		INSERT INTO OC_MEMBER VALUES (OC_MEMBER_SQ.NEXTVAL, #{id}, #{pw}, #{name}, #{gender}, #{face}, #{email}, #{tel}, #{address}, 'Y')
+	</insert>
+	
+	<select id="getId" parameterType="Map" resultType="String">
+		SELECT ID FROM OC_MEMBER WHERE NAME=#{name} AND EMAIL = #{email}	
+	</select>
+	
+	<select id="getIdByNo" parameterType="int" resultType="String">
+		SELECT ID FROM OC_MEMBER WHERE NO=#{no}	
+	</select>
+	
+	<select id="getPw" parameterType="Map" resultType="String">
+		SELECT PW FROM OC_MEMBER WHERE ID=#{id} AND EMAIL = #{email}
+	</select>
+	
+	<update id="enabledUpdate" parameterType="Map">
+		UPDATE OC_MEMBER SET ENABLED=#{enabled} WHERE NO=#{no}
+	</update>
+	
+	<update id="leave" parameterType="int">
+		UPDATE OC_MEMBER SET ENABLED='N' WHERE NO=#{no}
+	</update>
+	
+	<update id="myInfoUpdate" parameterType="MemberDto">
+		UPDATE OC_MEMBER SET FACE=#{face}, PW=#{pw}, NAME=#{name}, GENDER=#{gender}, EMAIL=#{email}, TEL=#{tel}, ADDRESS=#{address} WHERE NO=#{no}
+	</update>
+	
+</mapper>
